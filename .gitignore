@@ -1,0 +1,9 @@
+project/db-data
+.vscode
+.DS_Store
+frontApp.exe
+authApp
+brokerApp
+listenerApp
+loggerServiceApp
+mailerApp
