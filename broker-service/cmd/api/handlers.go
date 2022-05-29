@@ -32,6 +32,12 @@ type LogPayload struct {
 	Data string `json:"data"`
 }
 
+type MSTeamsMessage struct {
+	Title     string
+	Body      string
+	TargetURL string
+}
+
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 	payload := jsonResponse{
 		Error:   false,
