@@ -37,6 +37,18 @@ build_logger:
 	cd ../logger-service && env GOOS=linux CGO_ENABLED=0 go build -o ${LOGGER_BINARY} ./cmd/api
 	@echo "Done!"
 
+## build_msteams: builds the msteams binary as a linux executable
+build_influx:
+	@echo Building influx binary...
+	cd ../influx-service && env GOOS=linux CGO_ENABLED=0 go build -o ${INFLUX_BINARY} ./cmd/api
+	@echo Done!
+
+## build_msteams: builds the msteams binary as a linux executable
+build_msteams:
+	@echo Building msteams binary...
+	cd ../msteams-service && env GOOS=linux CGO_ENABLED=0 go build -o ${MSTEAMS_BINARY} ./cmd/api
+	@echo Done!
+
 ## build_listener: builds the listener binary as a linux executable
 build_listener:
 	@echo "Building listener binary..."

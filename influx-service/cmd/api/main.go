@@ -1,36 +1,51 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"time"
+	"log"
+	"net/http"
+	"os"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
-func main() {
-	// create new client with default option for server url authenticate by token
-	client := influxdb2.NewClient("http://localhost:9999", "my-token")
-	// user blocking write client for writes to desired bucket
-	writeAPI := client.WriteAPIBlocking("my-org", "my-bucket")
-	// create point using full params constructor
-	p := influxdb2.NewPoint("stat",
-		map[string]string{"unit": "temperature"},
-		map[string]interface{}{"avg": 24.5, "max": 45},
-		time.Now())
-	// write point immediately
-	writeAPI.WritePoint(context.Background(), p)
-	// create point using fluent style
-	p = influxdb2.NewPointWithMeasurement("stat").
-		AddTag("unit", "temperature").
-		AddField("avg", 23.2).
-		AddField("max", 45).
-		SetTime(time.Now())
-	writeAPI.WritePoint(context.Background(), p)
+type Config struct {
+	APIPort string
+	InfluxDb string
+	AdminUser string
+	Password string
+	InfluxHost string
+	InfluxClient influxdb2.Client
+}
 
-	// Or write directly line protocol
-	line := fmt.Sprintf("stat,unit=temperature avg=%f,max=%f", 23.5, 45.0)
-	writeAPI.WriteRecord(context.Background(), line)
+var app Config
+
+func main() {
+
+	app := Config{
+		AdminUser: os.Getenv("INFLUXDB_ADMIN_USER"),
+		Password: os.Getenv("INFLUXDB_ADMIN_PASSWORD"),
+		InfluxHost: "influxdb",
+		APIPort: ":80",
+		InfluxDb: "DB0",
+	}
+
+	// create new client with default option for server url authenticate by token
+	app.InfluxClient = influxdb2.NewClient("http://" + app.InfluxHost + ":8086", app.AdminUser + ":" + app.Password)
+	
+	// start web server
+	// go app.serve()
+	log.Println("Starting service on port", app.APIPort)
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", app.APIPort),
+		Handler: app.routes(),
+	}
+
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Panic()
+	}
+
 	// Ensures background processes finish
-	client.Close()
+	app.InfluxClient.Close()
 }

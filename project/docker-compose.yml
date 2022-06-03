@@ -69,6 +69,17 @@ services:
       mode: replicated
       replicas: 1
 
+  influx-service:
+    build:
+      context: ./influx-service
+      dockerfile: ./../influx-service/influx-service.dockerfile
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      INFLUXDB_ADMIN_USER: admin
+      INFLUXDB_ADMIN_PASSWORD: password
+
   postgres:
     image: 'postgres:14.2'
     ports:
