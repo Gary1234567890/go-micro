@@ -42,6 +42,15 @@ type Payload struct {
 	Data string `json:"data"`
 }
 
+type InfuxPayload struct {
+	Bucket string `json:"bucket"`
+	Measurement string	`json:"measurement"`
+	Tag string `json:"tag"`
+	FieldUnit string `json:"field_unit"`
+	Value int `json:"value"`
+	CreatedAt int64 `json:"created_at"` 
+}
+
 func (consumer *Consumer) Listen(topics []string) error {
 	ch, err := consumer.conn.Channel()
 	if err != nil {
@@ -90,6 +99,7 @@ func (consumer *Consumer) Listen(topics []string) error {
 }
 
 func handlePayload(payload Payload) {
+
 	switch payload.Name {
 	case "log", "event":
 		// log whatever we get
@@ -101,13 +111,17 @@ func handlePayload(payload Payload) {
 	case "auth":
 		// authenticate
 
-	// you can have as many cases as you want, as long as you write the logic
-
-	default:
-		err := logEvent(payload)
+	case "influx":
+		err := sendToInflux(payload)
 		if err != nil {
 			log.Println(err)
 		}
+
+		
+	// you can have as many cases as you want, as long as you write the logic
+
+	default:
+		log.Println("Didn't catch this one boss: ", payload.Name)
 	}
 }
 
@@ -115,6 +129,36 @@ func logEvent(entry Payload) error {
 	jsonData, _ := json.MarshalIndent(entry, "", "\t")
 
 	logServiceURL := "http://logger-service/log"
+
+	request, err := http.NewRequest("POST", logServiceURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		return err
+	}
+	
+	return nil
+}
+
+func sendToInflux(data Payload) error {
+
+	jsonData, _ := json.MarshalIndent(data, "", "\t")
+
+	log.Println("Going to send this to influx: ", string(jsonData))
+
+	logServiceURL := "http://influx-service/writedata"
 
 	request, err := http.NewRequest("POST", logServiceURL, bytes.NewBuffer(jsonData))
 	if err != nil {

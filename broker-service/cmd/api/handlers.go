@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -13,6 +14,7 @@ type RequestPayload struct {
 	Auth   AuthPayload `json:"auth,omitempty"`
 	Log    LogPayload  `json:"log,omitempty"`
 	Mail   MailPayload `json:"mail,omitempty"`
+	Influx	InfuxPayload `json:"influx,omitempty"`
 }
 
 type MailPayload struct {
@@ -36,6 +38,15 @@ type MSTeamsMessage struct {
 	Title     string
 	Body      string
 	TargetURL string
+}
+
+type InfuxPayload struct {
+	Bucket string `json:"bucket"`
+	Measurement string	`json:"measurement"`
+	Tag string `json:"tag"`
+	FieldUnit string `json:"field_unit"`
+	Value int `json:"value"`
+	CreatedAt int64 `json:"created_at"` 
 }
 
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +74,8 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
 		app.logEventViaRabbit(w, requestPayload.Log)
+	case "influx":
+		app.pushToInfluxViaRabbit(w, requestPayload.Influx)
 	case "mail":
 		app.sendMail(w, requestPayload.Mail)
 	default:
@@ -199,6 +212,26 @@ func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
 // logEventViaRabbit logs an event using the logger-service. It makes the call by pushing the data to RabbitMQ.
 func (app *Config) logEventViaRabbit(w http.ResponseWriter, l LogPayload) {
 	err := app.pushToQueue(l.Name, l.Data)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "logged via RabbitMQ"
+
+	app.writeJSON(w, http.StatusAccepted, payload)
+}
+
+// logEventViaRabbit logs data using the influx-service. It makes the call by pushing the data to RabbitMQ.
+func (app *Config) pushToInfluxViaRabbit(w http.ResponseWriter, I InfuxPayload) {
+	jMesseage, err := json.Marshal(I)
+	if err != nil {
+		log.Println(err)
+	}
+	sMessage := string(jMesseage)
+	err = app.pushToQueue("influx", sMessage)
 	if err != nil {
 		app.errorJSON(w, err)
 		return

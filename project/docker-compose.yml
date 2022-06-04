@@ -71,7 +71,7 @@ services:
 
   influx-service:
     build:
-      context: ./influx-service
+      context: ./../influx-service
       dockerfile: ./../influx-service/influx-service.dockerfile
     deploy:
       mode: replicated

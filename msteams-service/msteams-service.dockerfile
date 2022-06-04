@@ -4,4 +4,4 @@ RUN mkdir /app
 
 COPY msteamsServiceApp /app
 
-CMD [ "/app/msTeamsServiceApp"]
+CMD [ "/app/msteamsServiceApp"]

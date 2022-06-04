@@ -5,8 +5,8 @@ AUTH_BINARY=authApp
 LOGGER_BINARY=loggerServiceApp
 MAIL_BINARY=mailerApp
 LISTENER_BINARY=listenerApp
-MSTEAMS_BINARY=msteamsApp
-INFLUX_BINARY=influxApp
+MSTEAMS_BINARY=msteamsServiceApp
+INFLUX_BINARY=influxServiceApp
 
 ## up: starts all containers in the background without forcing build
 up:
@@ -43,13 +43,13 @@ build_listener:
 ## build_msteams: builds the msteams binary as a linux executable
 build_influx:
 	@echo Building influx binary...
-	chdir ..\influx-service && set GOOS=linux&& set GOARCH=amd64&& set CGO_ENABLED=0 && go build -o ${INFLUX_BINARY} .
+	chdir ..\influx-service && set GOOS=linux&& set GOARCH=amd64&& set CGO_ENABLED=0 && go build -o ${INFLUX_BINARY} ./cmd/api
 	@echo Done!
 
 ## build_msteams: builds the msteams binary as a linux executable
 build_msteams:
 	@echo Building msteams binary...
-	chdir ..\msteams-service && set GOOS=linux&& set GOARCH=amd64&& set CGO_ENABLED=0 && go build -o ${MSTEAMS_BINARY} .
+	chdir ..\msteams-service && set GOOS=linux&& set GOARCH=amd64&& set CGO_ENABLED=0 && go build -o ${MSTEAMS_BINARY} ./cmd/api
 	@echo Done!
 
 ## build_logger: builds the logger binary as a linux executable

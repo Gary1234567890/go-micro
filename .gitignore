@@ -10,3 +10,7 @@ mailerApp
 project/chronograf-storage/chronograf-v1.db
 project/grafana-storage/grafana.db
 project/grafana-storage/alerting/1/__default__.tmpl
+msteamsApp
+msteamsServiceApp
+influxApp
+influxServiceApp

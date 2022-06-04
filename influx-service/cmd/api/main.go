@@ -37,13 +37,13 @@ func main() {
 	// go app.serve()
 	log.Println("Starting service on port", app.APIPort)
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", app.APIPort),
+		Addr:    fmt.Sprintf("%s", app.APIPort),
 		Handler: app.routes(),
 	}
 
 	err := srv.ListenAndServe()
 	if err != nil {
-		log.Panic()
+		log.Panic(err)
 	}
 
 	// Ensures background processes finish
